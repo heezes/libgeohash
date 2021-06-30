@@ -76,6 +76,7 @@ static char *odd_neighbors[] = {"bc01fg45238967deuvhjyznpkmstqrwx",
 
 static char *even_borders[] = {"prxz", "bcfguvyz", "028b", "0145hjnp"};
 static char *odd_borders[] = {"bcfguvyz", "prxz", "0145hjnp", "028b"};
+static char hash_array[15] = {0};
 
 unsigned int index_for_char(char c, char *string) {
     
@@ -133,54 +134,57 @@ char* geohash_encode(double lat, double lng, int precision) {
     
     if(lat <= 90.0 && lat >= -90.0 && lng <= 180.0 && lng >= -180.0) {
         
-        hash = (char*)malloc(sizeof(char) * (precision + 1));
-        hash[precision] = '\0';
-        
-        precision *= 5.0;
-        
-        Interval lat_interval = {MAX_LAT, MIN_LAT};
-        Interval lng_interval = {MAX_LONG, MIN_LONG};
+//        hash = (char*)malloc(sizeof(char) * (precision + 1));
+    	hash = &hash_array[0];
+        if(hash)
+        {
+        	memset(hash, 0, (precision+1));
+			hash[precision] = '\0';
 
-        Interval *interval;
-        double coord, mid;
-        int is_even = 1;
-        unsigned int hashChar = 0;
-        int i;
-        for(i = 1; i <= precision; i++) {
-         
-            if(is_even) {
-            
-                interval = &lng_interval;
-                coord = lng;                
-                
-            } else {
-                
-                interval = &lat_interval;
-                coord = lat;   
-            }
-            
-            mid = (interval->low + interval->high) / 2.0;
-            hashChar = hashChar << 1;
-            
-            if(coord > mid) {
-                
-                interval->low = mid;
-                hashChar |= 0x01;
-                
-            } else
-                interval->high = mid;
-            
-            if(!(i % 5)) {
-                
-                hash[(i - 1) / 5] = char_map[hashChar];
-                hashChar = 0;
+			precision *= 5.0;
 
-            }
-            
-            is_even = !is_even;
+			Interval lat_interval = {MAX_LAT, MIN_LAT};
+			Interval lng_interval = {MAX_LONG, MIN_LONG};
+
+			Interval *interval;
+			double coord, mid;
+			int is_even = 1;
+			unsigned int hashChar = 0;
+			int i;
+			for(i = 1; i <= precision; i++) {
+
+				if(is_even) {
+
+					interval = &lng_interval;
+					coord = lng;
+
+				} else {
+
+					interval = &lat_interval;
+					coord = lat;
+				}
+
+				mid = (interval->low + interval->high) / 2.0;
+				hashChar = hashChar << 1;
+
+				if(coord > mid) {
+
+					interval->low = mid;
+					hashChar |= 0x01;
+
+				} else
+					interval->high = mid;
+
+				if(!(i % 5)) {
+
+					hash[(i - 1) / 5] = char_map[hashChar];
+					hashChar = 0;
+
+				}
+
+				is_even = !is_even;
+			}
         }
-     
-        
     }
     
     return hash;
